@@ -1,72 +1,117 @@
 #include <Arduino.h>
-#include <lvgl.h>
-#include "ST7306_LCD.h"
-#include "ST7306_LVGL.h"
+#include "ST7306_Mono.h"
 
 // =======================================================
-// --- Pin Configuration ---
+// --- Pin Configuration for 4-wire SPI ---
 // Adjust these according to your actual wiring
 // =======================================================
-#define PIN_TE 5
-#define PIN_CLK 4
-#define PIN_MOSI 3
-#define PIN_CS 2
-#define PIN_DC 1
-#define PIN_RST 0
+#define PIN_DC    1  // Data/Command
+#define PIN_RST   0  // Reset
+#define PIN_CS    2  // Chip Select
+// SPI MOSI and CLK are hardware SPI pins on nRF52840
 
 // =======================================================
-// --- Orientation Settings ---
-// Set to 1 for portrait (210x480), 0 for landscape (480x210)
+// --- Display Instance ---
 // =======================================================
-#define SCREEN_ORIENTATION_PORTRAIT 1
-
-#if SCREEN_ORIENTATION_PORTRAIT
-    #define RENDER_MODE_LANDSCAPE 0
-#else
-    #define RENDER_MODE_LANDSCAPE 1
-#endif
+ST7306_Mono display(PIN_DC, PIN_RST, PIN_CS);
 
 // =======================================================
-// --- Global Variables ---
+// --- Demo Functions ---
 // =======================================================
-ST7306_LCD lcd(PIN_MOSI, PIN_CLK, PIN_CS, PIN_DC, PIN_RST, PIN_TE);
 
-static lv_disp_draw_buf_t disp_buf;
-static lv_disp_drv_t disp_drv;
+void testDrawText() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(ST7306_BLACK);
+    display.setCursor(0, 0);
+    display.println("ST7306 Mono Display");
+    display.println("LH420NB-F07");
+    display.println("300x400 pixels");
+    display.println();
+    display.setTextSize(2);
+    display.println("Adafruit GFX");
+    display.display();
+}
 
-#define BUF_ROWS 40
+void testDrawShapes() {
+    display.clearDisplay();
+    
+    // Draw rectangles
+    display.drawRect(10, 10, 100, 50, ST7306_BLACK);
+    display.fillRect(120, 10, 100, 50, ST7306_BLACK);
+    
+    // Draw circles
+    display.drawCircle(60, 100, 30, ST7306_BLACK);
+    display.fillCircle(170, 100, 30, ST7306_BLACK);
+    
+    // Draw triangles
+    display.drawTriangle(30, 180, 60, 220, 0, 220, ST7306_BLACK);
+    display.fillTriangle(140, 180, 170, 220, 110, 220, ST7306_BLACK);
+    
+    // Draw lines
+    for (int i = 0; i < 300; i += 20) {
+        display.drawLine(0, 250, i, 380, ST7306_BLACK);
+    }
+    
+    display.display();
+}
 
-// =======================================================
-// --- LVGL Demo UI ---
-// =======================================================
-void lv_demo_ui() {
-    lv_obj_t *scr = lv_disp_get_scr_act(NULL);
-    lv_obj_set_style_bg_color(scr, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+void testScrollText() {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(ST7306_BLACK);
+    
+    for (int16_t y = 400; y > -100; y -= 2) {
+        display.clearDisplay();
+        display.setCursor(50, y);
+        display.println("Scrolling");
+        display.setCursor(50, y + 30);
+        display.println("Text");
+        display.setCursor(50, y + 60);
+        display.println("Demo");
+        display.display();
+        delay(10);
+    }
+}
 
-    // Title label
-    lv_obj_t *title = lv_label_create(scr);
-    lv_label_set_text(title, "ST7306 Display");
-    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 10);
-    lv_obj_set_style_text_color(title, lv_color_hex(0xF800), LV_PART_MAIN);
+void testFillScreen() {
+    // Test fill white
+    display.clearDisplay();
+    display.display();
+    delay(1000);
+    
+    // Test fill black
+    display.fillScreen(ST7306_BLACK);
+    display.display();
+    delay(1000);
+    
+    // Test invert
+    display.invertDisplay(true);
+    delay(1000);
+    display.invertDisplay(false);
+}
 
-    // Create a colored rectangle
-    lv_obj_t *rect = lv_obj_create(scr);
-    lv_obj_set_size(rect, 100, 100);
-    lv_obj_align(rect, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_bg_color(rect, lv_color_hex(0x07E0), LV_PART_MAIN);
-    lv_obj_set_style_border_width(rect, 0, LV_PART_MAIN);
+void testPixels() {
+    display.clearDisplay();
+    
+    // Draw random pixels
+    for (int i = 0; i < 1000; i++) {
+        int x = random(0, ST7306_WIDTH);
+        int y = random(0, ST7306_HEIGHT);
+        display.drawPixel(x, y, ST7306_BLACK);
+    }
+    
+    display.display();
+}
 
-    // Add a label inside the rectangle
-    lv_obj_t *label = lv_label_create(rect);
-    lv_label_set_text(label, "LVGL\nDemo");
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(0x0000), LV_PART_MAIN);
-
-    // Progress bar at bottom
-    lv_obj_t *bar = lv_bar_create(scr);
-    lv_obj_set_size(bar, 150, 20);
-    lv_bar_set_value(bar, 75, LV_ANIM_ON);
-    lv_obj_align(bar, LV_ALIGN_BOTTOM_MID, 0, -10);
+void drawBitmap() {
+    display.clearDisplay();
+    display.setTextSize(3);
+    display.setTextColor(ST7306_BLACK);
+    display.setCursor(30, 150);
+    display.println("READY!");
+    display.drawRect(0, 0, ST7306_WIDTH - 1, ST7306_HEIGHT - 1, ST7306_BLACK);
+    display.display();
 }
 
 // =======================================================
@@ -76,53 +121,66 @@ void setup() {
     Serial.begin(115200);
     delay(300);
     
-    Serial.println("Initializing ST7306 Display...");
+    Serial.println("ST7306 Monochrome Display Test");
+    Serial.println("LH420NB-F07 300x400");
+    Serial.println();
     
-    // Initialize LCD
-    lcd.begin();
-    lcd.clearDisplay();
+    // Initialize display
+    Serial.print("Initializing display... ");
+    if (!display.begin(40000000)) {  // 40 MHz SPI
+        Serial.println("FAILED!");
+        Serial.println("ERROR: Could not allocate frame buffer");
+        while (1) delay(1000);
+    }
+    Serial.println("OK");
     
-    Serial.println("Initializing LVGL...");
+    Serial.print("Display size: ");
+    Serial.print(display.width());
+    Serial.print(" x ");
+    Serial.println(display.height());
+    Serial.println();
     
-    // Initialize LVGL
-    lv_init();
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.draw_buf = &disp_buf;
-
-    #if RENDER_MODE_LANDSCAPE
-        // Landscape mode (480x210)
-        static lv_color_t buf[ST7306_HEIGHT * BUF_ROWS];
-        lv_disp_draw_buf_init(&disp_buf, buf, NULL, ST7306_HEIGHT * BUF_ROWS);
-        
-        disp_drv.hor_res = lcd.height();
-        disp_drv.ver_res = lcd.width();
-        disp_drv.flush_cb = disp_flush_landscape;
-        
-        Serial.println("LVGL Mode: Landscape (480x210)");
-    #else
-        // Portrait mode (210x480)
-        static lv_color_t buf[ST7306_WIDTH * BUF_ROWS];
-        lv_disp_draw_buf_init(&disp_buf, buf, NULL, ST7306_WIDTH * BUF_ROWS);
-        
-        disp_drv.hor_res = lcd.width();
-        disp_drv.ver_res = lcd.height();
-        disp_drv.flush_cb = disp_flush;
-        
-        Serial.println("LVGL Mode: Portrait (210x480)");
-    #endif
-
-    lv_disp_drv_register(&disp_drv);
+    // Show initial message
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(ST7306_BLACK);
+    display.setCursor(40, 180);
+    display.println("Initializing...");
+    display.display();
+    delay(1000);
     
-    Serial.println("Creating UI...");
-    lv_demo_ui();
-    
-    Serial.println("Setup complete!");
+    Serial.println("Running demo tests...");
 }
 
 // =======================================================
 // --- Loop Function ---
 // =======================================================
 void loop() {
-    lv_timer_handler();
-    delay(5);
+    Serial.println("Test 1: Drawing text");
+    testDrawText();
+    delay(3000);
+    
+    Serial.println("Test 2: Drawing shapes");
+    testDrawShapes();
+    delay(3000);
+    
+    Serial.println("Test 3: Fill screen test");
+    testFillScreen();
+    delay(1000);
+    
+    Serial.println("Test 4: Random pixels");
+    testPixels();
+    delay(3000);
+    
+    Serial.println("Test 5: Scrolling text");
+    testScrollText();
+    delay(1000);
+    
+    Serial.println("Test 6: Ready screen");
+    drawBitmap();
+    delay(3000);
+    
+    Serial.println("--- Tests complete, restarting ---\n");
+    delay(1000);
 }
+
