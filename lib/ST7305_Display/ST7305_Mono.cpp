@@ -52,341 +52,55 @@ void ST7305_Mono::hardwareReset() {
 }
 
 void ST7305_Mono::initDisplay() {
-    // ========================================================================
-    // ST7305 Initialization Sequence
-    // ========================================================================
     
-    // ------------------------------------------------------------------------
-    // NVM Load Control (0xD6)
-    // Parameter 1 [7:0]: NVM load item selection
-    //   Bit 0-6: Select which NVM parameters to load
-    //   0x17 = Load multiple NVM parameters
-    // Parameter 2 [7:0]: NVM load control settings
-    //   Bit 0: Load by Timer (0=Disable, 1=Enable)
-    //   Bit 1: Load by Sleep-out (0=Disable, 1=Enable)  
-    //   0x02 = Enable load by Sleep-out
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_NVMLOADCTRL);
-    sendData(0x17);  // Load NVM items
-    sendData(0x00);  // Enable load on sleep-out
-    
-    // ------------------------------------------------------------------------
-    // Booster Enable (0xD1)
-    // Parameter 1 [0]: Booster circuit control
-    //   0x00 = Disable booster (external VDDI supply)
-    //   0x01 = Enable booster (internal charge pump)
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_BSTEN);
-    sendData(0x01);  // Enable internal booster
-    
-    // ------------------------------------------------------------------------
-    // Gate Voltage Control (0xC0)
-    // Controls VGH (gate-on voltage) and VGL (gate-off voltage)
-    // Parameter 1 [7:0]: VGH voltage level
-    //   Range: 0x00-0x0F
-    //   Formula: VGH = 10V + (value × 0.5V)
-    //   0x0E = 10V + (14 × 0.5V) = 17V
-    // Parameter 2 [7:0]: VGL voltage level  
-    //   Range: 0x00-0x0F
-    //   Formula: VGL = -5V - (value × 0.5V)
-    //   0x0A = -5V - (10 × 0.5V) = -10V
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_GCTRL);
-    sendData(0x0E);  // VGH = 15V (gate high voltage)
-    sendData(0x0A);  // VGL = -10V (gate low voltage)
-    
-    // ------------------------------------------------------------------------
-    // VSHP Control (0xC1) - Source High Positive Voltage
-    // Sets positive voltage levels for grayscale (4 levels in mono mode)
-    // Parameter 1-4 [7:0]: VSHP1, VSHP2, VSHP3, VSHP4 voltage levels
-    //   Range: 0x00-0x7F
-    //   Formula: VSHP = 2.4V + (value × 0.04V)
-    //   0x41 = 2.4V + (65 × 0.04V) = 5.0V
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_VSHPCTRL);
-    sendData(0x41);  // VSHP1 = 5.0V
-    sendData(0x41);  // VSHP2 = 5.0V
-    sendData(0x41);  // VSHP3 = 5.0V
-    sendData(0x41);  // VSHP4 = 5.0V
-    
-    // ------------------------------------------------------------------------
-    // VSLP Control (0xC2) - Source Low Positive Voltage
-    // Sets low positive voltage levels for grayscale
-    // Parameter 1-4 [7:0]: VSLP1, VSLP2, VSLP3, VSLP4 voltage levels
-    //   Range: 0x00-0x7F
-    //   Formula: VSLP = -0.4V + (value × 0.04V)
-    //   0x32 = -0.4V + (50 × 0.04V) = 1.6V
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_VSLPCTRL);
-    sendData(0x32);  // VSLP1 = 1.6V
-    sendData(0x32);  // VSLP2 = 1.6V
-    sendData(0x32);  // VSLP3 = 1.6V
-    sendData(0x32);  // VSLP4 = 1.6V
-    
-    // ------------------------------------------------------------------------
-    // VSHN Control (0xC4) - Source High Negative Voltage
-    // Sets negative voltage levels for grayscale
-    // Parameter 1-4 [7:0]: VSHN1, VSHN2, VSHN3, VSHN4 voltage levels
-    //   Range: 0x00-0x7F
-    //   Formula: VSHN = -2.4V - (value × 0.04V)
-    //   0x46 = -2.4V - (70 × 0.04V) = -5.2V
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_VSHNCTRL);
-    sendData(0x46);  // VSHN1 = -5.2V
-    sendData(0x46);  // VSHN2 = -5.2V
-    sendData(0x46);  // VSHN3 = -5.2V
-    sendData(0x46);  // VSHN4 = -5.2V
-    
-    // ------------------------------------------------------------------------
-    // VSLN Control (0xC5) - Source Low Negative Voltage
-    // Sets low negative voltage levels for grayscale
-    // Parameter 1-4 [7:0]: VSLN1, VSLN2, VSLN3, VSLN4 voltage levels
-    //   Range: 0x00-0x7F
-    //   Formula: VSLN = 0.4V - (value × 0.04V)
-    //   0x46 = 0.4V - (70 × 0.04V) = -2.4V
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_VSLNCTRL);
-    sendData(0x46);  // VSLN1 = -2.4V
-    sendData(0x46);  // VSLN2 = -2.4V
-    sendData(0x46);  // VSLN3 = -2.4V
-    sendData(0x46);  // VSLN4 = -2.4V
-    
-    // ------------------------------------------------------------------------
-    // Frame Rate Control (0xB2)
-    // Parameter 1 [7:0]: Frame rate settings
-    //   Bits [7:4]: HPM (High Power Mode) frame rate
-    //     0x0 = 128Hz, 0x1 = 64Hz, 0x2 = 32Hz, 0x3 = 16Hz
-    //     0x4 = 8Hz,   0x5 = 4Hz,  0x6 = 2Hz,  0x7 = 1Hz
-    //   Bits [3:0]: LPM (Low Power Mode) frame rate
-    //     Same values as HPM
-    //   0x12 = HPM:32Hz (0x1), LPM:4Hz (0x2)
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_FRCTRL);
-    sendData(0x12);  // HPM=32Hz, LPM=4Hz
-    
-    // ------------------------------------------------------------------------
-    // Gate EQ Control in HPM (0xB3) - Update Period Gate Equalization
-    // 10 parameters control gate signal equalization timing in High Power Mode
-    // These values fine-tune the gate driver timing to reduce crosstalk
-    // Values are typically copied from reference design
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_GTUPEQH);
-    sendData(0xE5);  // Gate EQ timing parameter 1
-    sendData(0xF6);  // Gate EQ timing parameter 2
-    sendData(0x05);  // Gate EQ timing parameter 3
-    sendData(0x46);  // Gate EQ timing parameter 4
-    sendData(0x77);  // Gate EQ timing parameter 5
-    sendData(0x77);  // Gate EQ timing parameter 6
-    sendData(0x77);  // Gate EQ timing parameter 7
-    sendData(0x77);  // Gate EQ timing parameter 8
-    sendData(0x76);  // Gate EQ timing parameter 9
-    sendData(0x45);  // Gate EQ timing parameter 10
-    
-    // ------------------------------------------------------------------------
-    // Gate EQ Control in LPM (0xB4) - Update Period Gate Equalization
-    // 8 parameters control gate signal equalization timing in Low Power Mode
-    // Similar to HPM but optimized for slower refresh rates
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_GTUPEQL);
-    sendData(0x05);  // Gate EQ timing parameter 1
-    sendData(0x46);  // Gate EQ timing parameter 2
-    sendData(0x77);  // Gate EQ timing parameter 3
-    sendData(0x77);  // Gate EQ timing parameter 4
-    sendData(0x77);  // Gate EQ timing parameter 5
-    sendData(0x77);  // Gate EQ timing parameter 6
-    sendData(0x76);  // Gate EQ timing parameter 7
-    sendData(0x45);  // Gate EQ timing parameter 8
-    
-    // ------------------------------------------------------------------------
-    // Source EQ Enable (0xB7)
-    // Parameter 1 [7:0]: Source equalization settings
-    //   Enables source driver equalization to reduce crosstalk
-    //   0x00 = Disabled
-    //   0x13 = Enabled with specific timing
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_SOUEQ);
-    sendData(0x13);  // Enable source EQ with timing=0x13
-    
-    // ------------------------------------------------------------------------
-    // Gate Line Setting (0xB0)
-    // Parameter 1 [7:0]: Number of gate lines
-    //   Bits [7:0]: Gate line count
-    //   For 320 lines with 2-line interlace:
-    //     0x50 = 160 physical scan lines × 2 = 320 display lines
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_GATESET);
-    //sendData(0x50);  // 320 lines (160 × 2-line interlace)
-    //sendData(ST7305_HEIGHT / 4);
-    sendData(0x64);   //400 lines
-    
-    // ------------------------------------------------------------------------
-    // Sleep Out (0x11)
-    // Wakes display from sleep mode, must wait 120ms after this command
-    // No parameters
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_SLPOUT);
-    delay(120);  // Must wait after sleep out
-    
-    // ------------------------------------------------------------------------
-    // OSC Setting (0xD8)
-    // Parameter 1 [7:0]: Oscillator frequency setting
-    //   Bits [7:0]: OSC frequency control
-    //   0x80 = ~51Hz oscillator frequency
-    // Parameter 2 [7:0]: Additional OSC control
-    //   0xE9 = Extended OSC settings
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_OSCSET);
-    sendData(0x26);  // OSC frequency ~51Hz
-    sendData(0xE9);  // Extended OSC settings
-    
-    // ------------------------------------------------------------------------
-    // Source Voltage Select (0xC9)
-    // Parameter 1 [7:0]: Select which VSHP/VSLP/VSHN/VSLN to use
-    //   Bits [7:6]: VSHP select (00=VSHP1, 01=VSHP2, 10=VSHP3, 11=VSHP4)
-    //   Bits [5:4]: VSLP select (00=VSLP1, 01=VSLP2, 10=VSLP3, 11=VSLP4)
-    //   Bits [3:2]: VSHN select (00=VSHN1, 01=VSHN2, 10=VSHN3, 11=VSHN4)
-    //   Bits [1:0]: VSLN select (00=VSLN1, 01=VSLN2, 10=VSLN3, 11=VSLN4)
-    //   0x00 = Use all "1" voltages (VSHP1, VSLP1, VSHN1, VSLN1)
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_VSHLSEL);
-    sendData(0x00);  // Use VSHP1, VSLP1, VSHN1, VSLN1
-    
-    // ------------------------------------------------------------------------
-    // Memory Data Access Control (0x36)
-    // Parameter 1 [7:0]: Display orientation and color order
-    //   Bit 7 (MY): Row address order (0=top-to-bottom, 1=bottom-to-top)
-    //   Bit 6 (MX): Column address order (0=left-to-right, 1=right-to-left)
-    //   Bit 5 (MV): Row/column exchange (0=normal, 1=reversed)
-    //   Bit 4 (ML): Vertical refresh order (0=LCD refresh top-to-bottom)
-    //   Bit 3 (RGB): Color order (0=RGB, 1=BGR) - N/A for mono
-    //   Bit 2 (MH): Horizontal refresh order
-    //   0x48 = 01001000b = MY=0, MX=1, MV=0, ML=0, RGB=1
-    //   Common values:
-    //     0x00 = Normal
-    //     0x40 = X-mirror
-    //     0x80 = Y-mirror  
-    //     0xC0 = XY-mirror
-    //     0x20 = X-Y exchange
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_MADCTL);
-    sendData(0x00);  // X-mirror, specific refresh order
-    
-    // ------------------------------------------------------------------------
-    // Data Format Select (0x3A)
-    // Parameter 1 [7:0]: Data input format
-    //   Bit 4 (DPI): Display pixel format
-    //     0 = 8-bit/pixel, 1 = 1-bit/pixel (monochrome)
-    //   Bit 0 (BPS): Bit per symbol
-    //     0 = 4 operations for 24-bit
-    //     1 = 3 operations for 24-bit
-    //   0x10 = 00010000b = 1-bit monochrome mode
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_DTFORM);
-    sendData(0x10);  // 1-bit monochrome mode
-    
-    // ------------------------------------------------------------------------
-    // Gamma Mode Setting (0xB9)
-    // Parameter 1 [7:0]: Gamma curve selection
-    //   0x20 = Monochrome mode
-    //   0x48 = Grayscale mode with gamma curve 1
-    // Options:
-    //   0x20 = Mono mode (black/white only)
-    //   0x48 = 4-level grayscale
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_GAMAMS);
-    sendData(0x20);  // Monochrome mode (not grayscale)
-    
-    // ------------------------------------------------------------------------
-    // Panel Setting (0xB8)
-    // Parameter 1 [7:0]: Panel configuration
-    //   Bit 0: Panel layout (0=1-line, 1=2-line interlace)
-    //   0x00 = Specific panel configuration
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_PNLSET);
-    sendData(0x29);  // Panel configuration
-    
-    // ------------------------------------------------------------------------
-    // Column Address Set (0x2A)
-    // For ST7305 in 2-line interlace mode, uses simplified 2-byte format
-    // Parameter 1: Start column MSB
-    // Parameter 2: End column LSB
-    //   0x13 = 19 (start column)
-    //   0x28 = 40 (end column offset)
-    // This maps to the 264 source columns
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_CASET);
-    sendData(0x13);  // Column start = 19
-    sendData(0x28);  // Column range = 40
-    //sendData(0x12);  // Column range = 40
-    //sendData(0x2B);  // Column range = 40
-    
-    // ------------------------------------------------------------------------
-    // Row Address Set (0x2B)
-    // For ST7305 in 2-line interlace mode, uses simplified 2-byte format
-    // Parameter 1: Start row
-    // Parameter 2: End row
-    //   0x00 = Row 0
-    //   0x9F = Row 159 (160 physical rows × 2 interlace = 320 lines)
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_RASET);
-    sendData(0x00);  // Row start = 0
-    //sendData(0x9F);  // Row end = 159 (×2 interlace = 320)
-    //sendData((ST7305_HEIGHT / 2) - 1); // End row
-    
-    sendData(0xC7);  
-    
-    // ------------------------------------------------------------------------
-    // Tearing Effect Line On (0x35)
-    // Parameter 1 [0]: TE signal mode
-    //   0x00 = Mode 1: V-blanking only
-    //   0x01 = Mode 2: V-blanking and H-blanking
-    // Enables synchronization signal for smooth updates
-    // ------------------------------------------------------------------------
-    //sendCommand(ST7305_TEON);
-    sendCommand(ST7305_TEON);
-    sendData(0x00);  // TE mode 1 (V-blanking)
-    
-    // ------------------------------------------------------------------------
-    // Enable Auto Power Down (0xD0)
-    // Parameter 1 [7:0]: Auto power down settings
-    //   0x00 = Disable auto power down in normal mode
-    //   0xFF = Enable auto power down with maximum timeout
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_AUTOPWRCTRL);
-    sendData(0xFF);  // Enable auto power down
-    
-    // ------------------------------------------------------------------------
-    // Low Power Mode (0x39)
-    // Enters low power mode (1Hz refresh in LPM setting)
-    // No parameters
-    // Alternative: Use ST7305_HPM (0x38) for High Power Mode
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_LPM);
-    
-    // ------------------------------------------------------------------------
-    // Display On (0x29)
-    // Turns on display output
-    // No parameters
-    // ------------------------------------------------------------------------
-    sendCommand(ST7305_DISPON);
-    
-    delay(10);
+    for (uint8_t i = 0; i < sizeof(st7305_init_cmds) / sizeof(st7305_lcd_init_cmd_t); i++) {
+        sendCommand(st7305_init_cmds[i].cmd);
+        for (uint8_t j = 0; j < st7305_init_cmds[i].len; j++) {
+            sendData(st7305_init_cmds[i].data[j]);
+        }
+        if (st7305_init_cmds[i].delay_ms > 0) {
+            delay(st7305_init_cmds[i].delay_ms);
+        }
+    }
 }
+
 void ST7305_Mono::drawPixel(int16_t x, int16_t y, uint16_t color) {
     if ((x < 0) || (x >= ST7305_WIDTH) || (y < 0) || (y >= ST7305_HEIGHT)) {
         return;
     }
     
-    // Calculate byte position and bit position
-    uint32_t byteIndex = (y * ST7305_WIDTH + x) / 8;
-    uint8_t bitMask = 0x80 >> (x & 7);
+    // ST7305 memory layout per datasheet:
+    // 24 bits (3 bytes) map to 12×2 pixel block
+    // Top row: odd bits P1, P3, P5... P23 (bits 23, 21, 19... 1)
+    // Bottom row: even bits P2, P4, P6... P24 (bits 22, 20, 18... 0)
+    
+    uint32_t block_x = x / 12;          // Which 12-pixel-wide block horizontally
+    uint32_t block_y = y / 2;           // Which 2-pixel-high block vertically
+    uint32_t col_in_block = x % 12;     // Column within block (0-11)
+    uint32_t row_in_block = y % 2;      // Row within block (0=top, 1=bottom)
+    
+    // Calculate bit position in 24-bit word (MSB=bit 23, LSB=bit 0)
+    // Top row uses odd bits: 23, 21, 19... 1
+    // Bottom row uses even bits: 22, 20, 18... 0
+    uint8_t bit_pos = 23 - (col_in_block * 2) - row_in_block;
+    
+    // Calculate byte index
+    // Each row has (WIDTH/12) blocks, each block is 3 bytes
+    uint32_t bytes_per_row = (ST7305_WIDTH / 12) * 3;  // 25 * 3 = 75 bytes
+    uint32_t base_byte = block_y * bytes_per_row + block_x * 3;
+    
+    // Determine which of the 3 bytes and which bit within that byte
+    uint8_t byte_offset = bit_pos / 8;           // 0, 1, or 2
+    uint8_t bit_in_byte = 7 - (bit_pos % 8);     // MSB-first within byte
+    
+    uint32_t byte_index = base_byte + byte_offset;
     
     if (color) {
         // Set pixel (white)
-        buffer[byteIndex] |= bitMask;
+        buffer[byte_index] |= (1 << bit_in_byte);
     } else {
         // Clear pixel (black)
-        buffer[byteIndex] &= ~bitMask;
+        buffer[byte_index] &= ~(1 << bit_in_byte);
     }
 }
 

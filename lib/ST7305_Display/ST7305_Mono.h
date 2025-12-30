@@ -11,8 +11,9 @@
 #define ST7305_WIDTH  300
 #define ST7305_HEIGHT 400
 
-// Display buffer size (1 bit per pixel for monochrome)
-#define ST7305_BUFFER_SIZE ((ST7305_WIDTH * ST7305_HEIGHT) / 8)
+// Display buffer size (1 bit per pixel: 24 bits per 12×2 pixel block)
+// Formula: (WIDTH / 12) * 3 bytes * (HEIGHT / 2) = 25 * 3 * 200 = 15,000 bytes
+#define ST7305_BUFFER_SIZE (((ST7305_WIDTH / 12) * 3 * (ST7305_HEIGHT / 2)))
 
 // Color definitions for monochrome display
 #define ST7305_BLACK 0
@@ -74,6 +75,42 @@
 #define ST7305_BSTEN      0xD1  // Booster Enable
 #define ST7305_NVMLOADCTRL 0xD6 // NVM Load Control
 #define ST7305_OSCSET     0xD8  // OSC Setting
+
+// Initialization command structure
+typedef struct {
+    uint8_t cmd;
+    uint8_t data[10];
+    uint8_t len;
+    uint8_t delay_ms;
+} st7305_lcd_init_cmd_t;
+
+static const st7305_lcd_init_cmd_t st7305_init_cmds[] = {
+    {0xD6, {0x17, 0x00}, 2, 0},                                      // NVM Load Control
+    {0xD1, {0x01}, 1, 0},                                            // Booster Enable
+    {0xC0, {0x0E, 0x0A}, 2, 0},                                      // Gate Voltage Setting
+    {0xC1, {0x41, 0x41, 0x41, 0x41}, 4, 0},                          // VSHP Setting
+    {0xC2, {0x32, 0x32, 0x32, 0x32}, 4, 0},                          // VSLP Setting
+    {0xC4, {0x46, 0x46, 0x46, 0x46}, 4, 0},                          // VSHN Setting
+    {0xC5, {0x46, 0x46, 0x46, 0x46}, 4, 0},                          // VSLN Setting
+    {0xB2, {0x12}, 1, 0},                                            // Frame Rate Control
+    {0xB3, {0xE5, 0xF6, 0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 10, 0}, // Gate EQ HPM
+    {0xB4, {0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 8, 0}, // Gate EQ LPM
+    {0xB7, {0x13}, 1, 0},                                            // Source EQ Enable
+    {0xB0, {0x64}, 1, 0},                                            // Gate Line Setting: 400 lines
+    {0x11, {}, 0, 120},                                              // Sleep Out
+    {0xD8, {0x26, 0xE9}, 2, 0},                                      // OSC Setting
+    {0xC9, {0x00}, 1, 0},                                            // Source Voltage Select
+    {0x36, {0x00}, 1, 0},                                            // Memory Data Access Control
+    {0x3A, {0x11}, 1, 0},                                            // Data Format Select
+    {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
+    {0xB8, {0x29}, 1, 0},                                            // Panel Setting
+    {0x2A, {0x13, 0x28}, 2, 0},                                      // Column Address Setting
+    {0x2B, {0x00, 0xC7}, 2, 0},                                      // Row Address Setting
+    {0x35, {0x00}, 1, 0},                                            // Tearing Effect Line On
+    {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
+    {0x39, {}, 0, 0},                                                // Low Power Mode
+    {0x29, {}, 0, 10},                                               // Display On
+};
 
 class ST7305_Mono : public Adafruit_GFX {
 public:
