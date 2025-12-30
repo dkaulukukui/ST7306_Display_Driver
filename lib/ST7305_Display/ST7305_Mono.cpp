@@ -68,7 +68,7 @@ void ST7305_Mono::initDisplay() {
     // ------------------------------------------------------------------------
     sendCommand(ST7305_NVMLOADCTRL);
     sendData(0x17);  // Load NVM items
-    sendData(0x02);  // Enable load on sleep-out
+    sendData(0x00);  // Enable load on sleep-out
     
     // ------------------------------------------------------------------------
     // Booster Enable (0xD1)
@@ -92,8 +92,8 @@ void ST7305_Mono::initDisplay() {
     //   0x0A = -5V - (10 × 0.5V) = -10V
     // ------------------------------------------------------------------------
     sendCommand(ST7305_GCTRL);
-    sendData(0x11);  // VGH = 17V (gate high voltage)
-    sendData(0x04);  // VGL = -10V (gate low voltage)
+    sendData(0x0E);  // VGH = 15V (gate high voltage)
+    sendData(0x0A);  // VGL = -10V (gate low voltage)
     
     // ------------------------------------------------------------------------
     // VSHP Control (0xC1) - Source High Positive Voltage
@@ -118,10 +118,10 @@ void ST7305_Mono::initDisplay() {
     //   0x32 = -0.4V + (50 × 0.04V) = 1.6V
     // ------------------------------------------------------------------------
     sendCommand(ST7305_VSLPCTRL);
-    sendData(0x19);  // VSLP1 = 1.6V
-    sendData(0x19);  // VSLP2 = 1.6V
-    sendData(0x19);  // VSLP3 = 1.6V
-    sendData(0x19);  // VSLP4 = 1.6V
+    sendData(0x32);  // VSLP1 = 1.6V
+    sendData(0x32);  // VSLP2 = 1.6V
+    sendData(0x32);  // VSLP3 = 1.6V
+    sendData(0x32);  // VSLP4 = 1.6V
     
     // ------------------------------------------------------------------------
     // VSHN Control (0xC4) - Source High Negative Voltage
@@ -132,10 +132,10 @@ void ST7305_Mono::initDisplay() {
     //   0x46 = -2.4V - (70 × 0.04V) = -5.2V
     // ------------------------------------------------------------------------
     sendCommand(ST7305_VSHNCTRL);
-    sendData(0x41);  // VSHN1 = -5.2V
-    sendData(0x41);  // VSHN2 = -5.2V
-    sendData(0x41);  // VSHN3 = -5.2V
-    sendData(0x41);  // VSHN4 = -5.2V
+    sendData(0x46);  // VSHN1 = -5.2V
+    sendData(0x46);  // VSHN2 = -5.2V
+    sendData(0x46);  // VSHN3 = -5.2V
+    sendData(0x46);  // VSHN4 = -5.2V
     
     // ------------------------------------------------------------------------
     // VSLN Control (0xC5) - Source Low Negative Voltage
@@ -146,10 +146,10 @@ void ST7305_Mono::initDisplay() {
     //   0x46 = 0.4V - (70 × 0.04V) = -2.4V
     // ------------------------------------------------------------------------
     sendCommand(ST7305_VSLNCTRL);
-    sendData(0x19);  // VSLN1 = -2.4V
-    sendData(0x19);  // VSLN2 = -2.4V
-    sendData(0x19);  // VSLN3 = -2.4V
-    sendData(0x19);  // VSLN4 = -2.4V
+    sendData(0x46);  // VSLN1 = -2.4V
+    sendData(0x46);  // VSLN2 = -2.4V
+    sendData(0x46);  // VSLN3 = -2.4V
+    sendData(0x46);  // VSLN4 = -2.4V
     
     // ------------------------------------------------------------------------
     // Frame Rate Control (0xB2)
@@ -161,8 +161,8 @@ void ST7305_Mono::initDisplay() {
     //     Same values as HPM
     //   0x12 = HPM:32Hz (0x1), LPM:4Hz (0x2)
     // ------------------------------------------------------------------------
-     sendCommand(ST7305_FRCTRL);
-    sendData(0x05);  // HPM=32Hz, LPM=4Hz
+    sendCommand(ST7305_FRCTRL);
+    sendData(0x12);  // HPM=32Hz, LPM=4Hz
     
     // ------------------------------------------------------------------------
     // Gate EQ Control in HPM (0xB3) - Update Period Gate Equalization
@@ -217,7 +217,7 @@ void ST7305_Mono::initDisplay() {
     sendCommand(ST7305_GATESET);
     //sendData(0x50);  // 320 lines (160 × 2-line interlace)
     //sendData(ST7305_HEIGHT / 4);
-    sendData(0x64);  
+    sendData(0x64);   //400 lines
     
     // ------------------------------------------------------------------------
     // Sleep Out (0x11)
@@ -236,7 +236,7 @@ void ST7305_Mono::initDisplay() {
     //   0xE9 = Extended OSC settings
     // ------------------------------------------------------------------------
     sendCommand(ST7305_OSCSET);
-    sendData(0xA6);  // OSC frequency ~51Hz
+    sendData(0x26);  // OSC frequency ~51Hz
     sendData(0xE9);  // Extended OSC settings
     
     // ------------------------------------------------------------------------
@@ -269,7 +269,7 @@ void ST7305_Mono::initDisplay() {
     //     0x20 = X-Y exchange
     // ------------------------------------------------------------------------
     sendCommand(ST7305_MADCTL);
-    sendData(0x48);  // X-mirror, specific refresh order
+    sendData(0x00);  // X-mirror, specific refresh order
     
     // ------------------------------------------------------------------------
     // Data Format Select (0x3A)
@@ -282,7 +282,7 @@ void ST7305_Mono::initDisplay() {
     //   0x10 = 00010000b = 1-bit monochrome mode
     // ------------------------------------------------------------------------
     sendCommand(ST7305_DTFORM);
-    sendData(0x11);  // 1-bit monochrome mode
+    sendData(0x10);  // 1-bit monochrome mode
     
     // ------------------------------------------------------------------------
     // Gamma Mode Setting (0xB9)
@@ -315,10 +315,10 @@ void ST7305_Mono::initDisplay() {
     // This maps to the 264 source columns
     // ------------------------------------------------------------------------
     sendCommand(ST7305_CASET);
-    //sendData(0x13);  // Column start = 19
-    //sendData(0x28);  // Column range = 40
-    sendData(0x12);  // Column range = 40
-    sendData(0x2B);  // Column range = 40
+    sendData(0x13);  // Column start = 19
+    sendData(0x28);  // Column range = 40
+    //sendData(0x12);  // Column range = 40
+    //sendData(0x2B);  // Column range = 40
     
     // ------------------------------------------------------------------------
     // Row Address Set (0x2B)
