@@ -24,7 +24,7 @@ void testSinglePixel() {
     // Draw one pixel in the center of the screen
     int centerX = ST7305_WIDTH / 2;
     int centerY = ST7305_HEIGHT / 2;
-    display.drawPixel(centerX, centerY, ST7305_BLACK);
+    display.drawPixel(centerX, centerY, ST7305_WHITE);
     
     display.display();
     
@@ -38,7 +38,7 @@ void testSinglePixel() {
 void testDrawText() {
     display.clearDisplay();
     display.setTextSize(1);
-    display.setTextColor(ST7305_BLACK);
+    display.setTextColor(ST7305_WHITE);
     display.setCursor(0, 0);
     display.println("ST7305 Mono Display");
     display.println("300x400 pixels");
@@ -55,20 +55,20 @@ void testDrawShapes() {
     display.clearDisplay();
     
     // Draw rectangles
-    display.drawRect(10, 10, 100, 50, ST7305_BLACK);
-    display.fillRect(120, 10, 100, 50, ST7305_BLACK);
+    display.drawRect(10, 10, 100, 50, ST7305_WHITE);
+    display.fillRect(120, 10, 100, 50, ST7305_WHITE);
     
     // Draw circles
-    display.drawCircle(60, 100, 30, ST7305_BLACK);
-    display.fillCircle(170, 100, 30, ST7305_BLACK);
+    display.drawCircle(60, 100, 30, ST7305_WHITE);
+    display.fillCircle(170, 100, 30, ST7305_WHITE);
     
     // Draw triangles
-    display.drawTriangle(30, 180, 60, 220, 0, 220, ST7305_BLACK);
-    display.fillTriangle(140, 180, 170, 220, 110, 220, ST7305_BLACK);
+    display.drawTriangle(30, 180, 60, 220, 0, 220, ST7305_WHITE);
+    display.fillTriangle(140, 180, 170, 220, 110, 220, ST7305_WHITE);
     
     // Draw lines
     for (int i = 0; i < 300; i += 20) {
-        display.drawLine(0, 250, i, 380, ST7305_BLACK);
+        display.drawLine(0, 250, i, 380, ST7305_WHITE);
     }
     
     display.display();
@@ -77,7 +77,7 @@ void testDrawShapes() {
 void testScrollText() {
     display.clearDisplay();
     display.setTextSize(2);
-    display.setTextColor(ST7305_BLACK);
+    display.setTextColor(ST7305_WHITE);
     
     for (int16_t y = 400; y > -100; y -= 2) {
         display.clearDisplay();
@@ -116,7 +116,7 @@ void testPixels() {
     for (int i = 0; i < 1000; i++) {
         int x = random(0, ST7305_WIDTH);
         int y = random(0, ST7305_HEIGHT);
-        display.drawPixel(x, y, ST7305_BLACK);
+        display.drawPixel(x, y, ST7305_WHITE);
     }
     
     display.display();
@@ -125,7 +125,7 @@ void testPixels() {
 void testPowerModes() {
     display.clearDisplay();
     display.setTextSize(2);
-    display.setTextColor(ST7305_BLACK);
+    display.setTextColor(ST7305_WHITE);
     display.setCursor(50, 180);
     display.println("High Power");
     display.setCursor(50, 210);
@@ -151,10 +151,10 @@ void testPowerModes() {
 void drawBitmap() {
     display.clearDisplay();
     display.setTextSize(3);
-    display.setTextColor(ST7305_BLACK);
+    display.setTextColor(ST7305_WHITE);
     display.setCursor(70, 180);
     display.println("READY!");
-    display.drawRect(0, 0, ST7305_WIDTH - 1, ST7305_HEIGHT - 1, ST7305_BLACK);
+    display.drawRect(0, 0, ST7305_WIDTH - 1, ST7305_HEIGHT - 1, ST7305_WHITE);
     display.display();
 }
 
@@ -191,7 +191,7 @@ void setup() {
     // Show initial message
     display.clearDisplay();
     display.setTextSize(2);
-    display.setTextColor(ST7305_BLACK);
+    display.setTextColor(ST7305_WHITE);
     display.setCursor(40, 180);
     display.println("Initializing...");
     display.display();
