@@ -12,7 +12,7 @@ ST7305_Mono::~ST7305_Mono() {
     }
 }
 
-bool ST7305_Mono::begin(uint32_t spiFrequency) {
+bool ST7305_Mono::begin(uint32_t spiFrequency, const st7305_lcd_init_cmd_t* initCmds, size_t cmdCount) {
     // Configure pins
     pinMode(_dc, OUTPUT);
     pinMode(_cs, OUTPUT);
@@ -35,7 +35,7 @@ bool ST7305_Mono::begin(uint32_t spiFrequency) {
     
     // Hardware reset and initialize
     hardwareReset();
-    initDisplay();
+    initDisplay(initCmds, cmdCount);
     
     return true;
 }
@@ -51,9 +51,9 @@ void ST7305_Mono::hardwareReset() {
     }
 }
 
-void ST7305_Mono::initDisplay() {
+void ST7305_Mono::initDisplay(const st7305_lcd_init_cmd_t* st7305_init_cmds, size_t cmd_count) {
     
-    for (uint8_t i = 0; i < sizeof(st7305_init_cmds) / sizeof(st7305_lcd_init_cmd_t); i++) {
+    for (size_t i = 0; i < cmd_count; i++) {
         sendCommand(st7305_init_cmds[i].cmd);
         for (uint8_t j = 0; j < st7305_init_cmds[i].len; j++) {
             sendData(st7305_init_cmds[i].data[j]);
