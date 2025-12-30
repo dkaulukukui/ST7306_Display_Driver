@@ -18,6 +18,24 @@ ST7305_Mono display(PIN_DC, PIN_RST, PIN_CS);
 // --- Demo Functions ---
 // =======================================================
 
+void testSinglePixel() {
+    display.clearDisplay();
+    
+    // Draw one pixel in the center of the screen
+    int centerX = ST7305_WIDTH / 2;
+    int centerY = ST7305_HEIGHT / 2;
+    display.drawPixel(centerX, centerY, ST7305_BLACK);
+    
+    display.display();
+    
+    Serial.print("Drew pixel at center: (");
+    Serial.print(centerX);
+    Serial.print(", ");
+    Serial.print(centerY);
+    Serial.println(")");
+}
+
+/*
 void testDrawText() {
     display.clearDisplay();
     display.setTextSize(1);
@@ -140,6 +158,7 @@ void drawBitmap() {
     display.drawRect(0, 0, ST7305_WIDTH - 1, ST7305_HEIGHT - 1, ST7305_BLACK);
     display.display();
 }
+*/
 
 // =======================================================
 // --- Setup Function ---
@@ -187,6 +206,11 @@ void setup() {
 // --- Loop Function ---
 // =======================================================
 void loop() {
+    Serial.println("Test: Single pixel at center");
+    testSinglePixel();
+    delay(5000);
+    
+    /*
     Serial.println("Test 1: Drawing text");
     testDrawText();
     delay(3000);
@@ -217,4 +241,5 @@ void loop() {
     
     Serial.println("--- Tests complete, restarting ---\n");
     delay(1000);
+    */
 }

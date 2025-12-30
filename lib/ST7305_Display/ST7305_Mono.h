@@ -79,7 +79,8 @@
 // ============================================================================
 // Select active init commands - CHANGE THIS LINE TO SWITCH CONFIGS
 // ============================================================================
-#define ACTIVE_INIT_CMDS st7305_init_cmds_default
+//#define ACTIVE_INIT_CMDS st7305_init_cmds_default
+#define ACTIVE_INIT_CMDS st7305_init_cmds_mfg
 //#define ACTIVE_INIT_CMDS st7305_init_cmds_FT_tele
 //#define ACTIVE_INIT_CMDS st7305_init_cmds_kevin
 // Options: st7305_init_cmds_default, st7305_init_cmds_FT_tele, st7305_init_cmds_kevin
@@ -174,6 +175,35 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_kevin[] = {
     {0x2B, {0x00, 0xBF}, 2, 0},                                      // Row Address Setting
     {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
     {0x39, {}, 0, 0},                                                // Low Power Mode
+    {0x29, {}, 0, 100},                                              // Display On
+};
+
+static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
+    {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
+    {0xD1, {0x01}, 1, 0},                                            // Booster Enable
+    {0xC0, {0x11, 0x04}, 2, 0},                                      // Gate Voltage Setting
+    {0xC1, {0x69, 0x69, 0x69, 0x69}, 4, 0},                          // VSHP Setting (4.8V)
+    {0xC2, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLP Setting (0.98V)
+    {0xC4, {0x4B, 0x4B, 0x4B, 0x4B}, 4, 0},                          // VSHN Setting (-3.6V)
+    {0xC5, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLN Setting (0.22V)
+    {0xD8, {0xA6, 0xE9}, 2, 0},                                      // OSC Setting
+    {0xB2, {0x02}, 1, 0},                                            // Frame Rate Control
+    {0xB3, {0xE5, 0xF6, 0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 10, 0}, // Gate EQ HPM
+    {0xB4, {0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 8, 0}, // Gate EQ LPM
+    {0x62, {0x32, 0x03, 0x1F}, 3, 0},                                // Gate Timing Control
+    {0xB7, {0x13}, 1, 0},                                            // Source EQ Enable
+    {0xB0, {0x64}, 1, 0},                                            // Gate Line Setting: 384 lines
+    {0x11, {}, 0, 100},                                              // Sleep Out
+    {0xC9, {0x00}, 1, 0},                                            // Source Voltage Select
+    {0x36, {0x48}, 1, 0},                                            // Memory Data Access Control
+    {0x3A, {0x11}, 1, 0},                                            // Data Format Select
+    {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
+    {0xB8, {0x29}, 1, 0},
+    {0x21, {}, 0, 0},                                            // Panel Setting
+    {0x2A, {0x12, 0x2A}, 2, 0},                                      // Column Address Setting
+    {0x2B, {0x00, 0xC7}, 2, 0},                                      // Row Address Setting
+    {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
+    {0x38, {}, 0, 0},                                                // Low Power Mode
     {0x29, {}, 0, 100},                                              // Display On
 };
 
