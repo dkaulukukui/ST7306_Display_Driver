@@ -1,3 +1,33 @@
+/**
+ * ST7305_Mono.h
+ * 
+ * ST7305 Monochrome Display Driver for Arduino
+ * 
+ * This library provides a driver for ST7305-based monochrome displays with:
+ * - 300×400 pixel resolution
+ * - 4 pixels per byte horizontal packing
+ * - 2 rows per vertical group
+ * - 15,000 byte frame buffer
+ * - Adafruit GFX library integration
+ * - Multiple initialization configurations
+ * - SPI communication up to 40MHz
+ * 
+ * Memory Layout:
+ *   Buffer Size = (WIDTH / 4) × (HEIGHT / 2) = 75 × 200 = 15,000 bytes
+ *   Each byte contains 4 horizontal pixels across 2 vertical rows
+ *   Bit mapping: 7-(line_bit_4*2+one_two)
+ * 
+ * Configuration:
+ *   Change ACTIVE_INIT_CMDS macro to switch between init command sets:
+ *   - st7305_init_cmds_default: Standard initialization
+ *   - st7305_init_cmds_FT_tele: FT_tele reference implementation
+ *   - st7305_init_cmds_kevin: Custom configuration variant
+ *   - st7305_init_cmds_mfg: Manufacturer settings
+ * 
+ * Author: Based on FT_tele_ST7305 reference implementation
+ * License: Open source
+ */
+
 #ifndef ST7305_MONO_H
 #define ST7305_MONO_H
 
@@ -5,53 +35,63 @@
 #include <Adafruit_GFX.h>
 #include <SPI.h>
 
+// ============================================================================
+// Display Configuration
+// ============================================================================
+
 // Display resolution
 // NOTE: ST7305 datasheet specifies 264x320, but supporting 300x400 as specified
 // Adjust these values to match your actual display panel
 #define ST7305_WIDTH  300
 #define ST7305_HEIGHT 400
 
-// Display buffer size (2 bits per pixel: 4 pixels/byte horizontal, 2 rows vertical)
+// Display buffer size calculation:
+// ST7305 uses 4 pixels per byte horizontally, 2 rows per vertical group
 // Formula: (WIDTH / 4) * (HEIGHT / 2) = 75 * 200 = 15,000 bytes
+// DO NOT change this formula unless hardware layout changes
 #define ST7305_BUFFER_SIZE (((ST7305_WIDTH / 4) * (ST7305_HEIGHT / 2)))
 
 // Color definitions for monochrome display
-#define ST7305_BLACK 0
-#define ST7305_WHITE 1
+#define ST7305_BLACK 0  // Bit value 0 = Black pixel
+#define ST7305_WHITE 1  // Bit value 1 = White pixel
 
-// ST7305 Commands
-#define ST7305_NOP        0x00
-#define ST7305_SWRESET    0x01
-#define ST7305_RDDID      0x04
-#define ST7305_RDDST      0x09
-#define ST7305_RDDPM      0x0A
-#define ST7305_SLPIN      0x10
-#define ST7305_SLPOUT     0x11
-#define ST7305_PTLON      0x12
-#define ST7305_PTLOFF     0x13
-#define ST7305_INVOFF     0x20
-#define ST7305_INVON      0x21
-#define ST7305_DISPOFF    0x28
-#define ST7305_DISPON     0x29
-#define ST7305_CASET      0x2A
-#define ST7305_RASET      0x2B
-#define ST7305_RAMWR      0x2C
-#define ST7305_RAMRD      0x2E
-#define ST7305_TEOFF      0x34
-#define ST7305_TEON       0x35
-#define ST7305_MADCTL     0x36
-#define ST7305_VSCSAD     0x37
-#define ST7305_HPM        0x38  // High Power Mode
-#define ST7305_LPM        0x39  // Low Power Mode
+// ============================================================================
+// ST7305 Command Definitions
+// ============================================================================
+
+// Basic Commands
+#define ST7305_NOP        0x00  // No Operation
+#define ST7305_SWRESET    0x01  // Software Reset
+#define ST7305_RDDID      0x04  // Read Display ID
+#define ST7305_RDDST      0x09  // Read Display Status
+#define ST7305_RDDPM      0x0A  // Read Display Power Mode
+#define ST7305_SLPIN      0x10  // Sleep In
+#define ST7305_SLPOUT     0x11  // Sleep Out
+#define ST7305_PTLON      0x12  // Partial Mode ON
+#define ST7305_PTLOFF     0x13  // Partial Mode OFF
+#define ST7305_INVOFF     0x20  // Display Inversion OFF
+#define ST7305_INVON      0x21  // Display Inversion ON
+#define ST7305_DISPOFF    0x28  // Display OFF
+#define ST7305_DISPON     0x29  // Display ON
+#define ST7305_CASET      0x2A  // Column Address Set
+#define ST7305_RASET      0x2B  // Row Address Set
+#define ST7305_RAMWR      0x2C  // Memory Write
+#define ST7305_RAMRD      0x2E  // Memory Read
+#define ST7305_TEOFF      0x34  // Tearing Effect Line OFF
+#define ST7305_TEON       0x35  // Tearing Effect Line ON
+#define ST7305_MADCTL     0x36  // Memory Access Control
+#define ST7305_VSCSAD     0x37  // Vertical Scroll Start Address
+#define ST7305_HPM        0x38  // Idle Mode OFF (High Power Mode)
+#define ST7305_LPM        0x39  // Idle Mode ON (Low Power Mode)
 #define ST7305_DTFORM     0x3A  // Data Format Select
-#define ST7305_WRMEMC     0x3C
-#define ST7305_RDMEMC     0x3E
-#define ST7305_TESCAN     0x44
-#define ST7305_RDID1      0xDA
-#define ST7305_RDID2      0xDB
-#define ST7305_RDID3      0xDC
+#define ST7305_WRMEMC     0x3C  // Write Memory Continue
+#define ST7305_RDMEMC     0x3E  // Read Memory Continue
+#define ST7305_TESCAN     0x44  // Set Tear Scanline
+#define ST7305_RDID1      0xDA  // Read ID1
+#define ST7305_RDID2      0xDB  // Read ID2
+#define ST7305_RDID3      0xDC  // Read ID3
 
-// ST7305 Extended Commands
+// Extended Commands (Voltage, Timing, and Power Control)
 #define ST7305_GATESET    0xB0  // Gate Line Setting
 #define ST7305_FSTCOM     0xB1  // First Gate Setting
 #define ST7305_FRCTRL     0xB2  // Frame Rate Control
@@ -77,23 +117,51 @@
 #define ST7305_OSCSET     0xD8  // OSC Setting
 
 // ============================================================================
-// Select active init commands - CHANGE THIS LINE TO SWITCH CONFIGS
+// Configuration Selection - CHANGE THIS LINE TO SWITCH INIT COMMANDS
 // ============================================================================
+// Uncomment ONE line below to select the active init command set:
 //#define ACTIVE_INIT_CMDS st7305_init_cmds_default
 #define ACTIVE_INIT_CMDS st7305_init_cmds_mfg
 //#define ACTIVE_INIT_CMDS st7305_init_cmds_FT_tele
 //#define ACTIVE_INIT_CMDS st7305_init_cmds_kevin
-// Options: st7305_init_cmds_default, st7305_init_cmds_FT_tele, st7305_init_cmds_kevin
+//
+// Available configurations:
+// - st7305_init_cmds_default: Standard initialization sequence
+// - st7305_init_cmds_FT_tele: Based on FT_tele reference library
+// - st7305_init_cmds_kevin: Custom configuration example
+// - st7305_init_cmds_mfg: Manufacturer recommended settings
+//
+// After changing, rebuild and upload to apply new configuration.
 // ============================================================================
 
-// Initialization command structure
+// ============================================================================
+// Initialization Command Structure
+// ============================================================================
+
+/**
+ * Initialization command structure for ST7305
+ * 
+ * Each command consists of:
+ * - cmd: Command byte to send
+ * - data[10]: Array of up to 10 data bytes
+ * - len: Number of data bytes (0-10)
+ * - delay_ms: Milliseconds to wait after sending command
+ */
 typedef struct {
-    uint8_t cmd;
-    uint8_t data[10];
-    uint8_t len;
-    uint8_t delay_ms;
+    uint8_t cmd;         // Command byte
+    uint8_t data[10];    // Data bytes (up to 10)
+    uint8_t len;         // Number of data bytes
+    uint8_t delay_ms;    // Delay after command (milliseconds)
 } st7305_lcd_init_cmd_t;
 
+// ============================================================================
+// Initialization Command Arrays
+// ============================================================================
+
+/**
+ * Default Initialization Commands
+ * Standard initialization sequence for ST7305 displays
+ */
 static const st7305_lcd_init_cmd_t st7305_init_cmds_default[] = {
     {0xD6, {0x17, 0x00}, 2, 0},                                      // NVM Load Control
     {0xD1, {0x01}, 1, 0},                                            // Booster Enable
@@ -207,53 +275,203 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
     {0x29, {}, 0, 100},                                              // Display On
 };
 
+// ============================================================================
+// ST7305_Mono Class - Main Display Driver
+// ============================================================================
+
+/**
+ * ST7305_Mono - Monochrome Display Driver Class
+ * 
+ * Inherits from Adafruit_GFX to provide full graphics library support.
+ * 
+ * Features:
+ * - 300×400 pixel monochrome display support
+ * - 15KB frame buffer with efficient 4-pixel-per-byte layout
+ * - Hardware SPI communication up to 40MHz
+ * - Multiple initialization configurations
+ * - Power management (high/low power modes)
+ * - Display inversion and fill operations
+ * 
+ * Usage:
+ *   ST7305_Mono display(DC_PIN, RST_PIN, CS_PIN);
+ *   display.begin(1000000);  // Initialize at 1MHz
+ *   display.clearDisplay();
+ *   display.drawPixel(10, 10, ST7305_WHITE);
+ *   display.display();  // Update screen
+ */
 class ST7305_Mono : public Adafruit_GFX {
 public:
+    // ========================================================================
+    // Constructor & Destructor
+    // ========================================================================
+    
+    /**
+     * Constructor - Create display driver instance
+     * @param dc  Data/Command control pin
+     * @param rst Reset pin (-1 if not used)
+     * @param cs  Chip Select pin
+     */
     ST7305_Mono(int8_t dc, int8_t rst, int8_t cs);
+    
+    /**
+     * Destructor - Free allocated frame buffer
+     */
     ~ST7305_Mono();
 
-    // Required GFX functions
+    // ========================================================================
+    // Core Display Functions
+    // ========================================================================
+    
+    /**
+     * drawPixel - Draw single pixel (Adafruit_GFX override)
+     * 
+     * Core drawing primitive used by all GFX functions.
+     * Maps pixel coordinates to buffer using 4-pixel-per-byte layout.
+     * 
+     * @param x     X coordinate (0-299)
+     * @param y     Y coordinate (0-399)
+     * @param color ST7305_BLACK or ST7305_WHITE
+     */
     void drawPixel(int16_t x, int16_t y, uint16_t color) override;
     
-    // Display control
+    // ========================================================================
+    // Display Control
+    // ========================================================================
+    
+    /**
+     * begin - Initialize display hardware
+     * 
+     * Allocates frame buffer, configures SPI, performs hardware reset,
+     * and sends initialization command sequence.
+     * 
+     * @param spiFrequency SPI clock speed (default 40MHz, recommend 1MHz for stability)
+     * @param initCmds     Pointer to init command array (defaults to ACTIVE_INIT_CMDS)
+     * @param cmdCount     Number of commands in array (auto-calculated)
+     * @return true if successful, false if out of memory
+     */
     bool begin(uint32_t spiFrequency = 40000000, 
                const st7305_lcd_init_cmd_t* initCmds = ACTIVE_INIT_CMDS,
                size_t cmdCount = sizeof(ACTIVE_INIT_CMDS) / sizeof(st7305_lcd_init_cmd_t));
+    
+    /**
+     * display - Transfer frame buffer to display
+     * 
+     * Sends entire 15KB buffer to display hardware via SPI.
+     * Must be called after drawing to make changes visible.
+     * 
+     * Sequence:
+     * 1. Set column address range (0x12-0x2A)
+     * 2. Set row address range (0x00-0xC7)
+     * 3. Send memory write command (0x2C)
+     * 4. Transfer buffer via SPI
+     * 
+     * Time: ~100ms @ 40MHz, ~300ms @ 1MHz
+     */
     void display();
+    
+    /**
+     * clearDisplay - Fill buffer with black (0x00)
+     * 
+     * Clears entire frame buffer to black.
+     * Call display() to update screen.
+     */
     void clearDisplay();
-    void fill(uint8_t data);  // Fill buffer with specific value
+    
+    /**
+     * fill - Fill buffer with specific byte value
+     * 
+     * @param data Byte value to fill buffer with
+     *             0x00=all black, 0xFF=all white, 0xAA/0x55=patterns
+     */
+    void fill(uint8_t data);
+    
+    /**
+     * invertDisplay - Hardware pixel inversion
+     * 
+     * Inverts all display pixels (white<->black).
+     * Hardware feature - doesn't modify buffer.
+     * 
+     * @param invert true to invert, false for normal
+     */
     void invertDisplay(bool invert);
+    
+    /**
+     * setContrast - Adjust display contrast (placeholder)
+     * 
+     * ST7305 requires voltage adjustments for contrast control.
+     * Modify init command voltages (C1, C2, C4, C5) instead.
+     * 
+     * @param contrast Contrast value (not implemented)
+     */
     void setContrast(uint8_t contrast);
     
-    // Power mode control
-    void setHighPowerMode();    // For faster refresh (HPM)
-    void setLowPowerMode();     // For power saving (LPM)
+    // ========================================================================
+    // Power Management
+    // ========================================================================
     
-    // Direct buffer access
+    /**
+     * setHighPowerMode - Enter high power mode (0x38)
+     * For faster refresh rates and better performance.
+     */
+    void setHighPowerMode();
+    
+    /**
+     * setLowPowerMode - Enter low power mode (0x39)
+     * For reduced power consumption (idle mode).
+     */
+    void setLowPowerMode();
+    
+    // ========================================================================
+    // Buffer Access
+    // ========================================================================
+    
+    /**
+     * getBuffer - Get direct frame buffer pointer
+     * 
+     * Provides access to raw buffer for advanced manipulation.
+     * Use with caution - incorrect writes can corrupt display.
+     * 
+     * Buffer format: 15,000 bytes
+     * Layout: (y/2) * 75 + (x/4)
+     * Bit position: 7 - ((x%4)*2 + (y%2))
+     * 
+     * @return Pointer to frame buffer
+     */
     uint8_t* getBuffer() { return buffer; }
     
 private:
-    int8_t _dc, _rst, _cs;
-    uint8_t *buffer;
-    SPISettings spiSettings;
+    // ========================================================================
+    // Private Members
+    // ========================================================================
     
-    // Low-level SPI functions
-    void sendCommand(uint8_t cmd);
-    void sendData(uint8_t data);
-    void sendDataBatch(const uint8_t *data, uint32_t size);
+    int8_t _dc, _rst, _cs;      // Pin assignments
+    uint8_t *buffer;             // Frame buffer pointer (15KB)
+    SPISettings spiSettings;     // SPI configuration
     
-    // Initialization
-    void hardwareReset();
-    //void initDisplay();
-    void initDisplay(const st7305_lcd_init_cmd_t* st7305_init_cmds, size_t cmd_count);
+    // ========================================================================
+    // Low-Level SPI Communication
+    // ========================================================================
     
+    void sendCommand(uint8_t cmd);                           // Send command byte
+    void sendData(uint8_t data);                             // Send data byte
+    void sendDataBatch(const uint8_t *data, uint32_t size);  // Send multiple bytes
     
-    // Helper functions
-    void setAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
-    void csLow();
-    void csHigh();
-    void dcLow();
-    void dcHigh();
+    // ========================================================================
+    // Initialization Helpers
+    // ========================================================================
+    
+    void hardwareReset();  // Perform hardware reset sequence
+    void initDisplay(const st7305_lcd_init_cmd_t* st7305_init_cmds, size_t cmd_count);  // Send init commands
+    
+    // ========================================================================
+    // Utility Functions
+    // ========================================================================
+    
+    void setAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);  // Define update region
+    void csLow();    // CS pin low (select device)
+    void csHigh();   // CS pin high (deselect device)
+    void dcLow();    // DC pin low (command mode)
+    void dcHigh();   // DC pin high (data mode)
 };
 
 #endif // ST7305_MONO_H
