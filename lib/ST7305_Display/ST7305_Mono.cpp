@@ -30,7 +30,7 @@ bool ST7305_Mono::begin(uint32_t spiFrequency, const st7305_lcd_init_cmd_t* init
         return false;
     }
     
-    // Clear buffer
+    // Clear buffer to white (0xFF for white background)
     memset(buffer, 0xFF, ST7305_BUFFER_SIZE);  // Start with white
     
     // Hardware reset and initialize
@@ -69,52 +69,57 @@ void ST7305_Mono::drawPixel(int16_t x, int16_t y, uint16_t color) {
         return;
     }
     
-    // ST7305 memory layout per datasheet:
-    // 24 bits (3 bytes) map to 12×2 pixel block
-    // Top row: odd bits P1, P3, P5... P23 (bits 23, 21, 19... 1)
-    // Bottom row: even bits P2, P4, P6... P24 (bits 22, 20, 18... 0)
+    // ST7305 memory layout matching reference code:
+    // 4 pixels horizontally, 2 rows vertically per byte
+    // Bit mapping: [x%4=0,y%2=0]->bit7, [x%4=1,y%2=0]->bit5, [x%4=2,y%2=0]->bit3, [x%4=3,y%2=0]->bit1
+    //              [x%4=0,y%2=1]->bit6, [x%4=1,y%2=1]->bit4, [x%4=2,y%2=1]->bit2, [x%4=3,y%2=1]->bit0
     
-    uint32_t block_x = x / 12;          // Which 12-pixel-wide block horizontally
-    uint32_t block_y = y / 2;           // Which 2-pixel-high block vertically
-    uint32_t col_in_block = x % 12;     // Column within block (0-11)
-    uint32_t row_in_block = y % 2;      // Row within block (0=top, 1=bottom)
-    
-    // Calculate bit position in 24-bit word (MSB=bit 23, LSB=bit 0)
-    // Top row uses odd bits: 23, 21, 19... 1
-    // Bottom row uses even bits: 22, 20, 18... 0
-    uint8_t bit_pos = 23 - (col_in_block * 2) - row_in_block;
-    
-    // Calculate byte index
-    // Each row has (WIDTH/12) blocks, each block is 3 bytes
-    uint32_t bytes_per_row = (ST7305_WIDTH / 12) * 3;  // 25 * 3 = 75 bytes
-    uint32_t base_byte = block_y * bytes_per_row + block_x * 3;
-    
-    // Determine which of the 3 bytes and which bit within that byte
-    uint8_t byte_offset = bit_pos / 8;           // 0, 1, or 2
-    uint8_t bit_in_byte = 7 - (bit_pos % 8);     // MSB-first within byte
-    
-    uint32_t byte_index = base_byte + byte_offset;
+    uint32_t real_x = x / 4;  // 0->0, 3->0, 4->1, 7->1
+    uint32_t real_y = y / 2;  // 0->0, 1->0, 2->1, 3->1
+    uint32_t LCD_DATA_WIDTH = ST7305_WIDTH / 4;  // 75 bytes per row
+    uint32_t write_byte_index = real_y * LCD_DATA_WIDTH + real_x;
+    uint32_t one_two = (y % 2 == 0) ? 0 : 1;  // 0 or 1
+    uint32_t line_bit_4 = x % 4;  // 0, 1, 2, or 3
+    uint8_t write_bit = 7 - (line_bit_4 * 2 + one_two);
     
     if (color) {
         // Set pixel (white)
-        buffer[byte_index] |= (1 << bit_in_byte);
+        buffer[write_byte_index] |= (1 << write_bit);
     } else {
         // Clear pixel (black)
-        buffer[byte_index] &= ~(1 << bit_in_byte);
+        buffer[write_byte_index] &= ~(1 << write_bit);
     }
 }
 
 void ST7305_Mono::display() {
-    // Set address window to full screen
-    setAddressWindow(0, 0, ST7305_WIDTH - 1, ST7305_HEIGHT - 1);
+    // Set column address
+    sendCommand(ST7305_CASET);
+    sendData(0x12);
+    sendData(0x2A);
     
-    // Write display buffer
+    // Set row address
+    sendCommand(ST7305_RASET);
+    sendData(0x00);
+    sendData(0xC7);
+    
+    // Write RAM
     sendCommand(ST7305_RAMWR);
-    sendDataBatch(buffer, ST7305_BUFFER_SIZE);
+    
+    // Send buffer data
+    digitalWrite(_dc, HIGH);
+    digitalWrite(_cs, LOW);
+    SPI.beginTransaction(spiSettings);
+    SPI.transfer(buffer, ST7305_BUFFER_SIZE);
+    SPI.endTransaction();
+    digitalWrite(_cs, HIGH);
 }
 
 void ST7305_Mono::clearDisplay() {
-    memset(buffer, 0xFF, ST7305_BUFFER_SIZE);  // White
+    memset(buffer, 0x00, ST7305_BUFFER_SIZE);  // Clear to black (0x00)
+}
+
+void ST7305_Mono::fill(uint8_t data) {
+    memset(buffer, data, ST7305_BUFFER_SIZE);
 }
 
 void ST7305_Mono::invertDisplay(bool invert) {

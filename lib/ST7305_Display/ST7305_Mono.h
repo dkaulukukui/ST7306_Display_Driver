@@ -11,9 +11,9 @@
 #define ST7305_WIDTH  300
 #define ST7305_HEIGHT 400
 
-// Display buffer size (1 bit per pixel: 24 bits per 12×2 pixel block)
-// Formula: (WIDTH / 12) * 3 bytes * (HEIGHT / 2) = 25 * 3 * 200 = 15,000 bytes
-#define ST7305_BUFFER_SIZE (((ST7305_WIDTH / 12) * 3 * (ST7305_HEIGHT / 2)))
+// Display buffer size (2 bits per pixel: 4 pixels/byte horizontal, 2 rows vertical)
+// Formula: (WIDTH / 4) * (HEIGHT / 2) = 75 * 200 = 15,000 bytes
+#define ST7305_BUFFER_SIZE (((ST7305_WIDTH / 4) * (ST7305_HEIGHT / 2)))
 
 // Color definitions for monochrome display
 #define ST7305_BLACK 0
@@ -221,6 +221,7 @@ public:
                size_t cmdCount = sizeof(ACTIVE_INIT_CMDS) / sizeof(st7305_lcd_init_cmd_t));
     void display();
     void clearDisplay();
+    void fill(uint8_t data);  // Fill buffer with specific value
     void invertDisplay(bool invert);
     void setContrast(uint8_t contrast);
     

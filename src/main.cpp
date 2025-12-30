@@ -35,7 +35,6 @@ void testSinglePixel() {
     Serial.println(")");
 }
 
-/*
 void testDrawText() {
     display.clearDisplay();
     display.setTextSize(1);
@@ -158,7 +157,6 @@ void drawBitmap() {
     display.drawRect(0, 0, ST7305_WIDTH - 1, ST7305_HEIGHT - 1, ST7305_BLACK);
     display.display();
 }
-*/
 
 // =======================================================
 // --- Setup Function ---
@@ -173,7 +171,7 @@ void setup() {
     
     // Initialize display
     Serial.print("Initializing display... ");
-    if (!display.begin(40000000)) {  // 40 MHz SPI
+    if (!display.begin(1000000)) {  // 40 MHz SPI
         Serial.println("FAILED!");
         Serial.println("ERROR: Could not allocate frame buffer");
         while (1) delay(1000);
@@ -210,7 +208,6 @@ void loop() {
     testSinglePixel();
     delay(5000);
     
-    /*
     Serial.println("Test 1: Drawing text");
     testDrawText();
     delay(3000);
@@ -241,5 +238,4 @@ void loop() {
     
     Serial.println("--- Tests complete, restarting ---\n");
     delay(1000);
-    */
 }
