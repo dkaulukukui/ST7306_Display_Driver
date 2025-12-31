@@ -190,62 +190,6 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_default[] = {
     {0x29, {}, 0, 10},                                               // Display On
 };
 
-static const st7305_lcd_init_cmd_t st7305_init_cmds_FT_tele[] = {
-    {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
-    {0xD1, {0x01}, 1, 0},                                            // Booster Enable
-    {0xC0, {0x11, 0x04}, 2, 0},                                      // Gate Voltage Setting
-    {0xC1, {0x41, 0x41, 0x41, 0x41}, 4, 0},                          // VSHP Setting
-    {0xC2, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLP Setting
-    {0xC4, {0x41, 0x41, 0x41, 0x41}, 4, 0},                          // VSHN Setting
-    {0xC5, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLN Setting
-    {0xB2, {0x05}, 1, 0},                                            // Frame Rate Control
-    {0xB3, {0xE5, 0xF6, 0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 10, 0}, // Gate EQ HPM
-    {0xB4, {0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 8, 0}, // Gate EQ LPM
-    {0x62, {0x32, 0x03, 0x1F}, 3, 0},                              // Gate Timing Control 
-    {0xB7, {0x13}, 1, 0},                                            // Source EQ Enable
-    {0xB0, {0x64}, 1, 0},                                            // Gate Line Setting: 400 lines
-    {0x11, {}, 0, 255},                                              // Sleep Out
-    {0xD8, {0xA6, 0xE9}, 2, 0},                                      // OSC Setting
-    {0xC9, {0x00}, 1, 0},                                            // Source Voltage Select
-    {0x36, {0x48}, 1, 0},                                            // Memory Data Access Control
-    {0x3A, {0x11}, 1, 0},                                            // Data Format Select
-    {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
-    {0xB8, {0x29}, 1, 0},                                            // Panel Setting
-    {0x2A, {0x12, 0x2B}, 2, 0},                                      // Column Address Setting
-    {0x2B, {0x00, 0xC7}, 2, 0},                                      // Row Address Setting
-    {0x35, {0x00}, 1, 0},                                            // Tearing Effect Line On
-    {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
-    {0x39, {}, 0, 0},                                                // Low Power Mode
-    {0x29, {}, 0, 10},                                               // Display On
-};
-
-static const st7305_lcd_init_cmd_t st7305_init_cmds_kevin[] = {
-    {0xD6, {0x13, 0x02}, 2, 0},                                      // NVM Load Control
-    {0xD1, {0x01}, 1, 0},                                            // Booster Enable
-    {0xC0, {0x08, 0x06}, 2, 0},                                      // Gate Voltage Setting
-    {0xC1, {0x3C, 0x3E, 0x3C, 0x3C}, 4, 0},                          // VSHP Setting (4.8V)
-    {0xC2, {0x23, 0x21, 0x23, 0x23}, 4, 0},                          // VSLP Setting (0.98V)
-    {0xC4, {0x5A, 0x5C, 0x5A, 0x5A}, 4, 0},                          // VSHN Setting (-3.6V)
-    {0xC5, {0x37, 0x35, 0x37, 0x37}, 4, 0},                          // VSLN Setting (0.22V)
-    {0xB2, {0x05}, 1, 0},                                            // Frame Rate Control
-    {0xB3, {0xE5, 0xF6, 0x17, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x71}, 10, 0}, // Gate EQ HPM
-    {0xB4, {0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 8, 0}, // Gate EQ LPM
-    {0x62, {0x32, 0x03, 0x1F}, 3, 0},                                // Gate Timing Control
-    {0xB7, {0x13}, 1, 0},                                            // Source EQ Enable
-    {0xB0, {0x60}, 1, 0},                                            // Gate Line Setting: 384 lines
-    {0x11, {}, 0, 100},                                              // Sleep Out
-    {0xC9, {0x00}, 1, 0},                                            // Source Voltage Select
-    {0x36, {0x00}, 1, 0},                                            // Memory Data Access Control
-    {0x3A, {0x11}, 1, 0},                                            // Data Format Select
-    {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
-    {0xB8, {0x29}, 1, 0},                                            // Panel Setting
-    {0x2A, {0x17, 0x24}, 2, 0},                                      // Column Address Setting
-    {0x2B, {0x00, 0xBF}, 2, 0},                                      // Row Address Setting
-    {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
-    {0x39, {}, 0, 0},                                                // Low Power Mode
-    {0x29, {}, 0, 100},                                              // Display On
-};
-
 static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
     {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
     {0xD1, {0x01}, 1, 0},                                            // Booster Enable
@@ -267,6 +211,36 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
     {0x3A, {0x11}, 1, 0},                                            // Data Format Select
     {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
     {0xB8, {0x29}, 1, 0},
+    {0x21, {}, 0, 0},                                            // Panel Setting
+    {0x2A, {0x12, 0x2A}, 2, 0},                                      // Column Address Setting
+    {0x2B, {0x00, 0xC7}, 2, 0},                                      // Row Address Setting
+    {0xD0, {0xFF}, 1, 0},                                            // Auto Power Down
+    {0x38, {}, 0, 0},                                                // Low Power Mode
+    {0x29, {}, 0, 100},                                              // Display On
+};
+
+static const st7305_lcd_init_cmd_t st7306_init_cmds_mfg[] = {
+    {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
+    {0xD1, {0x01}, 1, 0},                                            // Booster Enable
+    {0xC0, {0x11, 0x04}, 2, 0},                                      // Gate Voltage Setting
+    {0xC1, {0x41, 0x41, 0x41, 0x41}, 4, 0},                          // VSHP Setting 
+    {0xC2, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLP Setting 
+    {0xC4, {0x41, 0x41, 0x41, 0x41}, 4, 0},                          // VSHN Setting (-3.8V)
+    {0xC5, {0x19, 0x19, 0x19, 0x19}, 4, 0},                          // VSLN Setting (0.5V)
+    {0xD8, {0xA6, 0xE9}, 2, 0},                                      // OSC Setting
+    {0xB2, {0x05}, 1, 0},                                            // Frame Rate Control HPM=16 Hz, LPM= 8Hz
+    {0xB3, {0xE5, 0xF6, 0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 10, 0}, // Gate EQ HPM
+    {0xB4, {0x05, 0x46, 0x77, 0x77, 0x77, 0x77, 0x76, 0x45}, 8, 0}, // Gate EQ LPM
+    {0x62, {0x32, 0x03, 0x1F}, 3, 0},                                // Gate Timing Control
+    {0xB7, {0x13}, 1, 0},                                            // Source EQ Enable
+    {0xB0, {0x64}, 1, 0},                                            // Gate Line Setting: 384 lines
+    {0x11, {}, 0, 100},                                              // Sleep Out
+    {0xC9, {0x00}, 1, 0},                                            // Source Voltage Select
+    {0x36, {0x48}, 1, 0},                                            // Memory Data Access Control Vertical, if horizontal 0x4C
+    {0x3A, {0x11}, 1, 0},                                            // Data Format Select 
+    {0xB9, {0x20}, 1, 0},                                            // Gamma Mode Setting: Mono
+    {0xB8, {0x29}, 1, 0},
+    {0x35, {}, 0, 0},                                              //TE off
     {0x21, {}, 0, 0},                                            // Panel Setting
     {0x2A, {0x12, 0x2A}, 2, 0},                                      // Column Address Setting
     {0x2B, {0x00, 0xC7}, 2, 0},                                      // Row Address Setting

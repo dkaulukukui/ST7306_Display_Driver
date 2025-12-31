@@ -1,6 +1,8 @@
-# ST7305 Monochrome Display Driver for Arduino
+# ST7305/6 Monochrome Display Driver for Arduino
 
-Arduino library for ST7305 monochrome TFT displays using SPI. Designed for displays with 300×400 resolution using the ST7305 controller chip.
+Arduino library for ST7305/6 monochrome TFT displays using SPI. Designed for displays with 300×400 resolution using the ST7305/6 controller chip.
+
+Tested with TT420FSN21A(ST7305) and LH420NB-F07(ST7306)
 
 ## Features
 
@@ -14,7 +16,7 @@ Arduino library for ST7305 monochrome TFT displays using SPI. Designed for displ
 
 ## Hardware Specifications
 
-- **Controller**: ST7305
+- **Controller**: ST7305/6
 - **Resolution**: 300×400 pixels (width × height)
 - **Interface**: 4-wire SPI (MOSI, SCK, CS, DC) + Reset
 - **Colors**: Monochrome (Black & White)
@@ -128,9 +130,8 @@ The library supports multiple initialization command sets that can be switched w
 
 ### Available Configurations
 - `st7305_init_cmds_default` - Standard initialization
-- `st7305_init_cmds_FT_tele` - FT_tele reference implementation
-- `st7305_init_cmds_kevin` - Custom configuration variant
-- `st7305_init_cmds_mfg` - Manufacturer settings
+- `st7305_init_cmds_mfg` - Manufacturer settings for TT420FSN21A
+- `st7306_init_cmds_mfg` - Manufacturer settings for LH420NB-F07
 
 ### Switching Configurations
 
