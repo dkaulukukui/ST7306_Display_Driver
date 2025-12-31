@@ -190,6 +190,7 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_default[] = {
     {0x29, {}, 0, 10},                                               // Display On
 };
 
+//MFG inits for the TT420FSN21A(ST7305)
 static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
     {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
     {0xD1, {0x01}, 1, 0},                                            // Booster Enable
@@ -219,6 +220,7 @@ static const st7305_lcd_init_cmd_t st7305_init_cmds_mfg[] = {
     {0x29, {}, 0, 100},                                              // Display On
 };
 
+//MFG inits for the LH420NB-F07(ST7306)
 static const st7305_lcd_init_cmd_t st7306_init_cmds_mfg[] = {
     {0xD6, {0x17, 0x02}, 2, 0},                                      // NVM Load Control
     {0xD1, {0x01}, 1, 0},                                            // Booster Enable
